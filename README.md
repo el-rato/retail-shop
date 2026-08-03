@@ -48,21 +48,27 @@ notebooks/            exploration notebook
 
 ## Quick start (local)
 
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate      Linux/mac: source .venv/bin/activate
-pip install -r requirements.txt
-pip install -r requirements-ml.txt   # TensorFlow + dlib (heavy, optional)
+Dependencies are managed with **uv** (a single fast `pyproject.toml` + locked
+`uv.lock`). Install uv first if you don't have it:
 
-copy .env.example .env               # then set API_KEY
-python -m scripts.seed_demo_data     # optional demo records
+```bash
+# Windows:  pip install uv        macOS/Linux:  curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```bash
+uv sync                          # core + dev tooling
+uv sync --group ml               # + TensorFlow + dlib (heavy, optional)
+# or: uv sync --all-groups
+
+copy .env.example .env           # then set API_KEY
+uv run python -m scripts.seed_demo_data     # optional demo records
 
 # Terminal 1 — API
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 # Swagger UI → http://localhost:8000/docs
 
 # Terminal 2 — Dashboard
-streamlit run frontend/dashboard.py
+uv run streamlit run frontend/dashboard.py
 # → http://localhost:8501
 ```
 
@@ -92,10 +98,10 @@ curl -X POST http://localhost:8000/analyze-sentiment \
 ## Training
 
 ```bash
-python -m training.download_datasets --all      # Fashion-MNIST, reviews CSV, LFW
-python -m training.train_sentiment --csv data/ecommerce_reviews.csv
-python -m training.train_product --epochs 6
-python -m training.train_face data/faces --seed # per-person subfolders
+uv run python -m training.download_datasets --all      # Fashion-MNIST, reviews CSV, LFW
+uv run python -m training.train_sentiment --csv data/ecommerce_reviews.csv
+uv run python -m training.train_product --epochs 6
+uv run python -m training.train_face data/faces --seed # per-person subfolders
 ```
 
 Artifacts are written to `models/artifacts/` and picked up automatically on the
@@ -104,8 +110,8 @@ next API restart.
 ## Tests
 
 ```bash
-pip install -r requirements-dev.txt
-pytest -q                 # or: pytest --cov=app
+uv sync --frozen               # ensure core + dev are installed
+uv run pytest -q               # or: uv run pytest --cov=app
 ```
 
 The test suite does **not** require TensorFlow or dlib — services touching them
@@ -121,11 +127,12 @@ docker compose up --build
 
 ## Deploy
 
-- **Render:** use `render.yaml` (API_KEY is auto-generated).
-- **Railway/Render:** `pip install -r requirements.txt -r requirements-ml.txt`,
-  start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
-- **GitHub Actions:** `.github/workflows/ci.yml` lints (ruff) and runs the suite
-  on every push/PR.
+- **Render:** use `render.yaml` (installs uv, `uv sync --frozen --group ml`,
+  starts with `uv run`; API_KEY is auto-generated).
+- **Railway:** build `uv sync --frozen --group ml`, start
+  `uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+- **GitHub Actions:** `.github/workflows/ci.yml` uses `astral-sh/setup-uv`,
+  lints (ruff) and runs the suite on every push/PR.
 
 For PostgreSQL set `DATABASE_URL=postgresql+psycopg://user:pass@host:5432/retail`.
 

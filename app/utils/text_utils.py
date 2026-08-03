@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import re
+
+# NLTK 3.9+ ships an import-security hook (nltk.inisec) that blocks NLTK from
+# importing modules whose path resolves inside the current working directory.
+# Because our virtualenv lives at <repo>/.venv (under the project root), every
+# NLTK import would be flagged as "CWD code" and blocked. This is a documented
+# false positive for in-repo venvs, so we opt out before NLTK is loaded.
+os.environ.setdefault("NLTK_DISABLE_IMPORT_SECURITY", "1")
 
 import nltk
 from nltk.corpus import stopwords
