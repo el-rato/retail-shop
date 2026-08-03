@@ -1,0 +1,172 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns": [
+        "hi",
+        "hello",
+        "hey",
+        "good morning",
+        "good afternoon",
+        "good evening",
+        "howdy",
+        "hi there"
+      ],
+      "responses": [
+        "Hello! Welcome to our store. How can I help you today?",
+        "Hi there! How can I assist you?",
+        "Hey! What can I do for you today?"
+      ]
+    },
+    {
+      "tag": "hours",
+      "patterns": [
+        "what are your store hours",
+        "when do you open",
+        "when do you close",
+        "opening hours",
+        "what time do you close",
+        "are you open on sundays",
+        "store timings"
+      ],
+      "responses": [
+        "We are open Monday to Saturday from 9:00 AM to 9:00 PM, and on Sundays from 10:00 AM to 6:00 PM.",
+        "Our store hours are 9 AM to 9 PM on weekdays and 10 AM to 6 PM on Sundays."
+      ]
+    },
+    {
+      "tag": "returns",
+      "patterns": [
+        "how do I return an item",
+        "what is your return policy",
+        "can I return a product",
+        "return policy",
+        "I want to return something",
+        "how long do I have to return",
+        "refund policy"
+      ],
+      "responses": [
+        "You can return items within 30 days of purchase with the original receipt. Refunds are processed to the original payment method within 5-7 business days.",
+        "Our return policy allows 30-day returns with the receipt. Would you like details on refunds?"
+      ]
+    },
+    {
+      "tag": "shipping",
+      "patterns": [
+        "shipping policy",
+        "how long does shipping take",
+        "do you ship internationally",
+        "shipping costs",
+        "delivery time",
+        "free shipping",
+        "where do you ship"
+      ],
+      "responses": [
+        "We offer free standard shipping on orders over $50. Delivery takes 3-5 business days domestically and 7-14 days internationally.",
+        "Standard shipping is 3-5 business days. Express options are available at checkout."
+      ]
+    },
+    {
+      "tag": "gift_cards",
+      "patterns": [
+        "do you have gift cards",
+        "gift card",
+        "buy a gift card",
+        "gift certificate",
+        "check gift card balance"
+      ],
+      "responses": [
+        "Yes, we offer gift cards in values from $10 to $500. You can buy them in-store or online.",
+        "Gift cards are available at the register and online. They never expire."
+      ]
+    },
+    {
+      "tag": "promotions",
+      "patterns": [
+        "any discounts",
+        "are there any sales",
+        "promotions",
+        "discounts",
+        "coupon codes",
+        "student discount",
+        "black friday"
+      ],
+      "responses": [
+        "We currently have a 20% discount on selected items. Check the 'Offers' section for active promotions and coupon codes.",
+        "Right now there is a seasonal sale with up to 30% off! Check our promotions page for details."
+      ]
+    },
+    {
+      "tag": "products",
+      "patterns": [
+        "what products do you sell",
+        "do you sell clothes",
+        "do you have electronics",
+        "product catalog",
+        "what is in stock",
+        "new arrivals"
+      ],
+      "responses": [
+        "We carry apparel, footwear, accessories, electronics, and more. Check the catalog or ask about a specific item!",
+        "Our range includes clothing, shoes, bags, and electronics. Let me know what you're looking for."
+      ]
+    },
+    {
+      "tag": "payment",
+      "patterns": [
+        "what payment methods do you accept",
+        "can I pay with credit card",
+        "do you accept apple pay",
+        "payment options",
+        "can I pay with cash",
+        "installments"
+      ],
+      "responses": [
+        "We accept all major credit cards, debit cards, PayPal, Apple Pay, and cash.",
+        "You can pay by card, cash, PayPal, or mobile wallets. Installments are available on orders over $100."
+      ]
+    },
+    {
+      "tag": "order_status",
+      "patterns": [
+        "where is my order",
+        "order status",
+        "track my order",
+        "has my order shipped",
+        "order tracking"
+      ],
+      "responses": [
+        "You can track your order using the tracking link emailed to you after dispatch. Need the link resent?",
+        "Please check the tracking number in your order confirmation email for the latest status."
+      ]
+    },
+    {
+      "tag": "thanks",
+      "patterns": [
+        "thank you",
+        "thanks",
+        "appreciate it",
+        "that helps",
+        "great, thanks"
+      ],
+      "responses": [
+        "You're welcome! Anything else I can help you with?",
+        "Happy to help! Have a great day."
+      ]
+    },
+    {
+      "tag": "goodbye",
+      "patterns": [
+        "bye",
+        "goodbye",
+        "see you",
+        "see you later",
+        "talk to you later"
+      ],
+      "responses": [
+        "Goodbye! We hope to see you again soon.",
+        "Take care and come back anytime!"
+      ]
+    }
+  ]
+}

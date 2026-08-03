@@ -1,0 +1,36 @@
+name: smart-retail
+
+services:
+  api:
+    build: .
+    container_name: retail-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENV=production
+      - API_KEY=${API_KEY:-change-me-in-production}
+      - DATABASE_URL=sqlite:////data/retail.db
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    volumes:
+      - retail_data:/data
+      - ./models/artifacts:/app/models/artifacts
+    command: >
+      sh -c "python -m scripts.seed_demo_data --n 10 || true
+      && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    restart: unless-stopped
+
+  dashboard:
+    build: .
+    container_name: retail-dashboard
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    environment:
+      - DASHBOARD_API_BASE=${DASHBOARD_API_BASE:-http://api:8000}
+      - API_KEY=${API_KEY:-change-me-in-production}
+    command: streamlit run frontend/dashboard.py --server.address 0.0.0.0 --server.port 8501
+    restart: unless-stopped
+
+volumes:
+  retail_data:

@@ -1,0 +1,8 @@
+# Heavy ML / native dependencies.
+# Install with: pip install -r requirements-ml.txt
+# TensorFlow enables MobileNetV2 product classification.
+# face_recognition (dlib) enables 128-d face encoding recognition.
+
+tensorflow>=2.15,<2.20
+face-recognition>=1.3.0
+dlib>=19.24

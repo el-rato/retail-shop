@@ -1,0 +1,49 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Env / secrets
+.env
+
+# Data & databases
+data/*.db
+data/*.sqlite*
+data/logs/
+data/fashion-mnist/
+data/lfw/
+data/lfw-deepfunneled.tgz
+data/ecommerce_reviews.csv
+data/faces/
+data/yunet/
+
+# Model artifacts (large binaries; download or train them)
+models/artifacts/*.keras
+models/artifacts/*.h5
+models/artifacts/*.joblib
+models/artifacts/*.pkl
+
+# Test artifacts
+tests/test_retail.db
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ML logs
+*.log
+
+# Streamlit
+.streamlit/secrets.toml

@@ -1,0 +1,19 @@
+# Render blueprint — deploy the API as a web service.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: retail-api
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt -r requirements-ml.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENV
+        value: production
+      - key: API_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///./data/retail.db
+      - key: CORS_ORIGINS
+        value: '*'
