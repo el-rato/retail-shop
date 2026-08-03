@@ -1,0 +1,126 @@
+name: Build & Release Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create (e.g. v1.0.0)'
+        required: true
+        default: v1.0.0
+      product_epochs:
+        description: 'Product classifier training epochs'
+        required: false
+        default: '6'
+      product_limit:
+        description: 'Fashion-MNIST samples per split (0 = full 60k)'
+        required: false
+        default: '5000'
+      pre_release:
+        description: 'Mark as pre-release'
+        required: false
+        type: boolean
+        default: false
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: '3.12'
+          enable-cache: true
+
+      - name: System libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0
+
+      - name: Sync training dependencies
+        run: uv sync --frozen --group training
+
+      - name: Download sentiment dataset
+        run: uv run python -m training.download_datasets --sentiment
+
+      - name: Train sentiment model
+        run: uv run python -m training.train_sentiment --csv data/ecommerce_reviews.csv
+
+      - name: Download Fashion-MNIST
+        run: uv run python -m training.download_datasets --fashion
+
+      - name: Train product classifier
+        run: >
+          uv run python -m training.train_product
+          --epochs ${{ inputs.product_epochs || '6' }}
+          --limit ${{ inputs.product_limit || '5000' }}
+
+      - name: Sanity-check artifacts
+        run: |
+          ls -la models/artifacts/
+          uv run python -c "import json; import joblib; joblib.load('models/artifacts/sentiment_lr.joblib'); json.load(open('models/artifacts/product_labels.json')); print('artifacts load OK')"
+
+      - name: Package artifacts
+        run: |
+          mkdir -p dist/artifacts
+          cp models/artifacts/sentiment_tfidf.joblib \
+             models/artifacts/sentiment_lr.joblib \
+             models/artifacts/product_mobilenetv2.keras \
+             models/artifacts/product_labels.json \
+             dist/artifacts/
+          uv run python - <<'EOF'
+          import json, os, platform, sys
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import tensorflow, sklearn
+          info = {
+              "project": "smart-retail-platform",
+              "commit": "${{ github.sha }}",
+              "built_at": datetime.now(timezone.utc).isoformat(),
+              "python": platform.python_version(),
+              "platform": platform.platform(),
+              "tensorflow": tensorflow.__version__,
+              "scikit_learn": sklearn.__version__,
+              "artifacts": sorted(p.name for p in Path("dist/artifacts").iterdir()),
+          }
+          Path("dist/artifacts/BUILD_INFO.json").write_text(
+              json.dumps(info, indent=2)
+          )
+          print(json.dumps(info, indent=2))
+          EOF
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: dist/artifacts/*
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          name: ${{ inputs.tag || github.ref_name }}
+          body: |
+            ## Pre-trained model artifacts
+
+            Built from `${{ github.sha }}` by GitHub Actions.
+
+            - `sentiment_tfidf.joblib` — TF-IDF vectorizer (sentiment)
+            - `sentiment_lr.joblib` — Logistic Regression classifier (sentiment)
+            - `product_mobilenetv2.keras` — MobileNetV2 product classifier (Fashion-MNIST)
+            - `product_labels.json` — retail category labels
+            - `BUILD_INFO.json` — build metadata (commit, versions, platform)
+
+            Drop the files into `models/artifacts/` (or set `MODEL_DIR`) and restart
+            the API to use the trained models.
+          files: dist/artifacts/*
+          draft: false
+          prerelease: ${{ inputs.pre_release }}

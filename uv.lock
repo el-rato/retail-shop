@@ -1883,6 +1883,9 @@ ml = [
     { name = "face-recognition" },
     { name = "tensorflow" },
 ]
+training = [
+    { name = "tensorflow" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -1917,6 +1920,7 @@ ml = [
     { name = "face-recognition", specifier = ">=1.3.0" },
     { name = "tensorflow", specifier = ">=2.15,<2.20" },
 ]
+training = [{ name = "tensorflow", specifier = ">=2.15,<2.20" }]
 
 [[package]]
 name = "smmap"
