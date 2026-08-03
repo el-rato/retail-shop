@@ -88,12 +88,23 @@ class ProductClassifier:
         self.model = None
         self._imagenet_model = None
         self.labels: list[str] = []
+        # Flag indicating whether any ML backend is available for products
+        self._ml_available = False
         self._load()
 
     # ------------------------------------------------------------------ #
     def _load(self) -> None:
+        # If Keras/TensorFlow not present, don't raise — allow the app to start and
+        # provide a lightweight fallback in classify() so endpoints remain available.
         if not KERAS_AVAILABLE:
-            raise ModelLoadError("TensorFlow/Keras is not installed in this environment.")
+            logger.warning(
+                "TensorFlow/Keras unavailable; product classifier will use a lightweight fallback."
+            )
+            self.model = None
+            self._imagenet_model = None
+            self.labels = []
+            self._ml_available = False
+            return
 
         artifact = settings.model_paths["product"]
         labels_path = settings.model_paths["product_labels"]
@@ -102,6 +113,7 @@ class ProductClassifier:
             try:
                 self.model = load_model(artifact)
                 self.labels = list(json.loads(labels_path.read_text(encoding="utf-8")))
+                self._ml_available = True
                 logger.info("Loaded fine-tuned product model (%d classes).", len(self.labels))
                 return
             except Exception as exc:
@@ -114,26 +126,44 @@ class ProductClassifier:
                 weights="imagenet", include_top=True, input_shape=(224, 224, 3)
             )
             self.labels = []
+            self._ml_available = True
             logger.info("Using ImageNet-pretrained MobileNetV2 (fallback).")
         except Exception as exc:
-            raise ModelLoadError(
-                f"Could not initialise MobileNetV2 (weights download may be blocked): {exc}"
-            ) from exc
+            # If imagenet model cannot be initialised, keep a safe fallback instead
+            # of raising and taking down the whole app.
+            logger.exception(
+                "Could not initialise MobileNetV2 (weights download may be blocked). Using lightweight fallback instead: %s",
+                exc,
+            )
+            self.model = None
+            self._imagenet_model = None
+            self._ml_available = False
 
     # ------------------------------------------------------------------ #
     def classify(self, image_bgr: np.ndarray, top_k: int = 3) -> list[dict]:
-        """Return top-k predictions as ``[{label, category, confidence}, ...]``."""
+        """Return top-k predictions as ``[{label, category, confidence}, ...]``.
+
+        If no ML backend is available, return a deterministic lightweight fallback
+        prediction so endpoints stay responsive in environments without TF/Keras.
+        """
         from app.utils.image_utils import preprocess_product_image  # noqa: PLC0415
 
         x = preprocess_product_image(image_bgr)
         batch = np.expand_dims(x, axis=0)
 
+        # If a fine-tuned model is available, use it
         if self.model is not None:
             proba = np.asarray(self.model.predict(batch, verbose=0))[0]
             return self._format_topk(proba, self.labels, top_k)
 
-        proba = np.asarray(self._imagenet_model.predict(batch, verbose=0))[0]
-        return self._format_imagenet(proba, top_k)
+        # If imagenet model is available, use it
+        if self._imagenet_model is not None:
+            proba = np.asarray(self._imagenet_model.predict(batch, verbose=0))[0]
+            return self._format_imagenet(proba, top_k)
+
+        # Lightweight fallback: return a single "general" category with low confidence
+        logger.debug("ProductClassifier: using lightweight fallback prediction (no ML backend)")
+        return [{"label": "unknown", "category": "general", "confidence": 0.0}]
 
     # ------------------------------------------------------------------ #
     @staticmethod
