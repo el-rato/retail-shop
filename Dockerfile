@@ -1,7 +1,7 @@
 # ---- Smart Retail API image -------------------------------------------------
 # Multi-stage build: compile dlib/opencv in builder, slim runtime in final.
 
-FROM python:3.11-slim AS builder
+FROM python:3.12-slim AS builder
 
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -18,7 +18,7 @@ COPY requirements.txt requirements-ml.txt ./
 RUN pip install --prefix=/install -r requirements.txt -r requirements-ml.txt
 
 # ---- Runtime ----------------------------------------------------------------
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
