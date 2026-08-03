@@ -2,7 +2,7 @@
 # Multi-stage build using uv: compile dlib/OpenCV in the builder, copy the
 # complete virtualenv (including ML deps) into a slim runtime image.
 
-FROM python:3.11-slim AS builder
+FROM python:3.12-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --group ml --python /usr/local/bin/python
 
 # ---- Runtime ----------------------------------------------------------------
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
